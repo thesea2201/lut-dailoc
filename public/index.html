@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <title>Báo cáo thủy điện</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 2rem;
+        background-color: #f7f9fc;
+      }
+      h1 {
+        margin-bottom: 1rem;
+      }
+      section {
+        margin-bottom: 2rem;
+        background: #fff;
+        padding: 1.5rem;
+        border-radius: 0.75rem;
+        box-shadow: 0 8px 16px rgba(15, 23, 42, 0.08);
+      }
+      img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+        margin: 1rem auto 0;
+        border: 1px solid #cbd5f5;
+        border-radius: 0.5rem;
+      }
+      time {
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Báo cáo thủy điện</h1>
+    <p>
+      Hai biểu đồ dưới đây được cập nhật tự động mỗi 15 phút.<br />
+      Lần cập nhật mới nhất:
+      <time id="last-updated">đang tải...</time>
+    </p>
+
+    <section>
+      <h2>Diễn biến lưu lượng theo giờ</h2>
+      <img src="baocaothuydien_plot.png" alt="Biểu đồ lưu lượng theo giờ" />
+    </section>
+
+    <section>
+      <h2>So sánh lưu lượng cùng giờ giữa các ngày</h2>
+      <img
+        src="baocaothuydien_plot_overlay.png"
+        alt="Biểu đồ so sánh lưu lượng cùng giờ giữa các ngày"
+      />
+    </section>
+
+    <script>
+      fetch('baocaothuydien_plot.png', { method: 'HEAD' })
+        .then((response) => {
+          const lastModified = response.headers.get('Last-Modified');
+          if (lastModified) {
+            const date = new Date(lastModified);
+            document.getElementById('last-updated').textContent = date.toLocaleString();
+          }
+        })
+        .catch(() => {
+          document.getElementById('last-updated').textContent = 'Không xác định';
+        });
+    </script>
+  </body>
+</html>
