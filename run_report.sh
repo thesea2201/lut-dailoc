@@ -17,7 +17,7 @@ else
   PYTHON_BIN="${PYTHON_BIN:-python3}"
 fi
 
-if command -v git >/dev/null 2>&1; then
+if command -v git >/dev/null 2>&1 && git -C "$PROJECT_DIR" rev-parse --git-dir >/dev/null 2>&1; then
   echo "Updating repository from $GIT_REMOTE/$GIT_BRANCH..."
   git -C "$PROJECT_DIR" fetch "$GIT_REMOTE" "$GIT_BRANCH"
   git -C "$PROJECT_DIR" pull --ff-only "$GIT_REMOTE" "$GIT_BRANCH"

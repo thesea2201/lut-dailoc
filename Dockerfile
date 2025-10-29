@@ -20,7 +20,7 @@ COPY public ./public
 
 RUN chmod +x run_report.sh
 
-RUN printf '*/15 * * * * /app/run_report.sh >> /var/log/cron.log 2>&1\n' >/etc/cron.d/report-cron \
+RUN printf '*/15 * * * * root /app/run_report.sh >> /var/log/cron.log 2>&1\n' >/etc/cron.d/report-cron \
     && crontab /etc/cron.d/report-cron
 
 COPY docker/nginx.conf /etc/nginx/sites-available/default
