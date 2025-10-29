@@ -11,9 +11,10 @@ GIT_BRANCH="${GIT_BRANCH:-main}"
 
 mkdir -p "$OUTPUT_DIR"
 
-if [ ! -d "$VENV_DIR" ]; then
-  echo "Virtual environment not found at $VENV_DIR" >&2
-  exit 1
+if [ -d "$VENV_DIR" ]; then
+  PYTHON_BIN="${PYTHON_BIN:-$VENV_DIR/bin/python}"
+else
+  PYTHON_BIN="${PYTHON_BIN:-python3}"
 fi
 
 if command -v git >/dev/null 2>&1; then
@@ -22,7 +23,7 @@ if command -v git >/dev/null 2>&1; then
   git -C "$PROJECT_DIR" pull --ff-only "$GIT_REMOTE" "$GIT_BRANCH"
 fi
 
-"$VENV_DIR/bin/python" "$PROJECT_DIR/plot_baocaothuydien.py" \
+"$PYTHON_BIN" "$PROJECT_DIR/plot_baocaothuydien.py" \
   --output "$HOURLY_OUTPUT" \
   --cache-dir "$PROJECT_DIR/.cache" \
   --force-refresh \
