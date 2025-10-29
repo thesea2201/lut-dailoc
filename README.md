@@ -29,7 +29,7 @@ You can then run the script via `uv` without manual activation:
 ```bash
 uv run plot_baocaothuydien.py \
     --start 2025-10-28T00:00:00.000Z \
-    --end 2025-10-29T23:59:59.000Z \
+    --end $(date -u +"%Y-%m-%dT23:59:59.000Z") \
     --plant-ids 1,2,3,4 \
     --output baocaothuydien_plot.png
 ```
@@ -41,7 +41,7 @@ Run the script with optional query overrides:
 ```bash
 python plot_baocaothuydien.py \
     --start 2025-10-28T00:00:00.000Z \
-    --end 2025-10-29T23:59:59.000Z \
+    --end $(date -u +"%Y-%m-%dT23:59:59.000Z") \
     --plant-ids 1,2,3,4 \
     --output baocaothuydien_plot.png
 ```
@@ -63,7 +63,7 @@ Cache metadata stores the last fetch timestamp and the most recent execution tim
 Arguments:
 
 - `--start`: `ngaybatdau` parameter in ISO8601 format (default `2025-10-28T00:00:00.000Z`).
-- `--end`: `ngayketthuc` parameter (default `2025-10-29T23:59:59.000Z`).
+- `--end`: `ngayketthuc` parameter (defaults to today at 23:59:59 UTC).
 - `--plant-ids`: Comma-separated `lst_thuydien_id` list (default `1,2,3,4`).
 - `--output`: Output PNG path for the hourly chart (default `baocaothuydien_plot.png`). The overlay image is generated alongside it using the same stem.
 - `--show`: Display the chart window after saving.
