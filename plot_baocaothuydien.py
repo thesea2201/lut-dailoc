@@ -17,9 +17,16 @@ from urllib.request import urlopen
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 
+
+def default_today_end_iso() -> str:
+    today = datetime.now(timezone.utc).date()
+    end_of_day = datetime(today.year, today.month, today.day, 23, 59, 59, tzinfo=timezone.utc)
+    return end_of_day.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+
+
 BASE_URL = "https://pctt.danang.gov.vn/DesktopModules/PCTT/api/PCTTApi/baocaothuydiens_thongke"
 DEFAULT_START = "2025-10-28T00:00:00.000Z"
-DEFAULT_END = "2025-10-29T23:59:59.000Z"
+DEFAULT_END = default_today_end_iso()
 DEFAULT_PLANT_IDS = "1,2,3,4"
 CACHE_DIR = Path(".cache")
 CACHE_TTL = timedelta(hours=1)
