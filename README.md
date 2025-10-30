@@ -114,7 +114,15 @@ Leave these variables unset to disable alerts.
 
    This produces `public/baocaothuydien_plot.png` and `public/baocaothuydien_plot_overlay.png` alongside `public/index.html`.
 
-3. **Schedule automatic refresh every 30 minutes**
+3. **Run with Docker Compose**
+
+   ```bash
+   docker compose up --build -d
+   ```
+
+   This builds the image, mounts `.env` for configuration, and serves the site on ports 80/443. The publish interval follows cron inside the container.
+
+4. **Schedule automatic refresh every 30 minutes**
 
    Edit the crontab (`crontab -e`) and add:
 
@@ -124,7 +132,7 @@ Leave these variables unset to disable alerts.
 
    The script forces a fresh fetch each run, so the images always reflect the latest data.
 
-4. **Serve the reports**
+5. **Serve the reports**
 
    Point your web server (e.g. Nginx) to the `public/` directory:
 

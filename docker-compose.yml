@@ -1,0 +1,17 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: .
+    image: hydro-report:latest
+    env_file:
+      - .env
+    volumes:
+      - ./.cache:/app/.cache
+      - ./public:/app/public
+      - /etc/letsencrypt/live/thuydien.thebien.net:/etc/nginx/certs:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: unless-stopped
