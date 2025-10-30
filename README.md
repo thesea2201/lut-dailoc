@@ -73,6 +73,16 @@ Arguments:
 
 The script saves both images and optionally displays them. Duplicate timestamps in the API response are deduplicated using the last occurrence.
 
+### Telegram alerts
+
+If you set the following environment variables, the script will send a Telegram notification whenever the latest `qvevugia` or `qvethubon` reading exceeds a threshold (default `6000`):
+
+- `TELEGRAM_BOT_TOKEN`: Bot token obtained from BotFather.
+- `TELEGRAM_CHAT_ID`: Chat or group ID to receive the alert.
+- `TELEGRAM_THRESHOLD` *(optional)*: Override the alert threshold.
+
+Leave these variables unset to disable alerts.
+
 ## Deploying on a VPS
 
 1. **Clone and prepare the project**

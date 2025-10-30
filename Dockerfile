@@ -10,22 +10,25 @@ WORKDIR ${APP_HOME}
 RUN apt-get update && apt-get install -y --no-install-recommends \
         cron \
         nginx \
+        iproute2 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY plot_baocaothuydien.py run_report.sh ./
+COPY plot_baocaothuydien.py run_report.sh telegram_notifier.py ./
 COPY public ./public
 
 RUN chmod +x run_report.sh
 
+COPY docker/entrypoint.sh ./docker/entrypoint.sh
+RUN chmod +x docker/entrypoint.sh
+
 RUN printf '*/15 * * * * root /app/run_report.sh >> /var/log/cron.log 2>&1\n' >/etc/cron.d/report-cron \
+    && chmod 0644 /etc/cron.d/report-cron \
     && crontab /etc/cron.d/report-cron
 
 COPY docker/nginx.conf /etc/nginx/sites-available/default
 RUN mkdir -p /var/www/html && ln -sf /app/public /var/www/html/public
 
-CMD service cron start && \
-    /app/run_report.sh && \
-    nginx -g 'daemon off;'
+ENTRYPOINT ["/app/docker/entrypoint.sh"]

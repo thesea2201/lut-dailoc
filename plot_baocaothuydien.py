@@ -17,6 +17,7 @@ from urllib.request import urlopen
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 
+from telegram_notifier import maybe_notify
 
 def default_today_end_iso() -> str:
     today = datetime.now(timezone.utc).date()
@@ -403,6 +404,13 @@ def main() -> None:
             overlay_path,
             args.show,
         )
+
+    readings = []
+    if timeline:
+        latest_timestamp = timeline[-1].astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+        readings.append(("Q về Vu Gia", qve_vugia[-1], latest_timestamp))
+        readings.append(("Q về Thu Bồn", qve_thubon[-1], latest_timestamp))
+    maybe_notify(readings)
 
     now_utc = datetime.now(timezone.utc)
     save_cache(records, hourly_path, overlay_path, cache_key, fetched_at, params, now_utc)
