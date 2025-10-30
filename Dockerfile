@@ -24,7 +24,7 @@ RUN chmod +x run_report.sh
 COPY docker/entrypoint.sh ./docker/entrypoint.sh
 RUN chmod +x docker/entrypoint.sh
 
-RUN printf '*/15 * * * * root /app/run_report.sh >> /var/log/cron.log 2>&1\n' >/etc/cron.d/report-cron \
+RUN printf '*/30 * * * * root /app/run_report.sh >> /var/log/cron.log 2>&1\n' >/etc/cron.d/report-cron \
     && chmod 0644 /etc/cron.d/report-cron \
     && crontab /etc/cron.d/report-cron
 

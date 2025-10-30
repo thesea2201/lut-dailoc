@@ -114,12 +114,12 @@ Leave these variables unset to disable alerts.
 
    This produces `public/baocaothuydien_plot.png` and `public/baocaothuydien_plot_overlay.png` alongside `public/index.html`.
 
-3. **Schedule automatic refresh every 15 minutes**
+3. **Schedule automatic refresh every 30 minutes**
 
    Edit the crontab (`crontab -e`) and add:
 
    ```cron
-   */15 * * * * /path/to/lut-dailoc/run_report.sh >> /path/to/lut-dailoc/run_report.log 2>&1
+   */30 * * * * /path/to/lut-dailoc/run_report.sh >> /path/to/lut-dailoc/run_report.log 2>&1
    ```
 
    The script forces a fresh fetch each run, so the images always reflect the latest data.
