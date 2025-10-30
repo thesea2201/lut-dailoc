@@ -2,6 +2,7 @@ version: "3.9"
 
 services:
   app:
+    container_name: hydro-report
     build:
       context: .
     image: hydro-report:latest
@@ -10,7 +11,8 @@ services:
     volumes:
       - ./.cache:/app/.cache
       - ./public:/app/public
-      - /etc/letsencrypt/live/thuydien.thebien.net:/etc/nginx/certs:ro
+      - /etc/letsencrypt/live/thuydien.thebien.net/fullchain.pem:/etc/nginx/certs/fullchain.pem:ro
+      - /etc/letsencrypt/live/thuydien.thebien.net/privkey.pem:/etc/nginx/certs/privkey.pem:ro
     ports:
       - "80:80"
       - "443:443"
