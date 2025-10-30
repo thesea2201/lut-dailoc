@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import shutil
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
@@ -17,6 +18,12 @@ from urllib.request import urlopen
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 
+try:
+    from dotenv import load_dotenv
+except ImportError:  # pragma: no cover - optional dependency
+    def load_dotenv(*args, **kwargs):  # type: ignore[override]
+        return False
+
 from telegram_notifier import maybe_notify
 
 def default_today_end_iso() -> str:
@@ -26,8 +33,10 @@ def default_today_end_iso() -> str:
 
 
 BASE_URL = "https://pctt.danang.gov.vn/DesktopModules/PCTT/api/PCTTApi/baocaothuydiens_thongke"
-DEFAULT_START = "2025-10-28T00:00:00.000Z"
-DEFAULT_END = default_today_end_iso()
+load_dotenv()
+
+DEFAULT_START = os.getenv("BAOCAOTHUYDIEN_DEFAULT_START", "2025-10-26T00:00:00.000Z")
+DEFAULT_END = os.getenv("BAOCAOTHUYDIEN_DEFAULT_END") or default_today_end_iso()
 DEFAULT_PLANT_IDS = "1,2,3,4"
 CACHE_DIR = Path(".cache")
 CACHE_TTL = timedelta(hours=1)

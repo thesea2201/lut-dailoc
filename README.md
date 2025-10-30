@@ -53,6 +53,10 @@ The script produces two images:
 1. `baocaothuydien_plot.png` – the chronological hourly trend.
 2. `baocaothuydien_plot_overlay.png` – hourly overlays of each day for Vu Gia and Thu Bồn.
 
+![Chronological hourly trend preview](baocaothuydien_plot.png)
+
+![Daily overlays preview](baocaothuydien_plot_overlay.png)
+
 Both images and the raw payload are cached in `.cache/` (configurable via `--cache-dir`). Cached entries stay valid for one hour by default (`--cache-ttl` in minutes).
 
 - To skip the cache intentionally, pass `--force-refresh`.
@@ -72,6 +76,11 @@ Arguments:
 - `--force-refresh`: Bypass the cache and always fetch new data.
 
 The script saves both images and optionally displays them. Duplicate timestamps in the API response are deduplicated using the last occurrence.
+
+Environment overrides:
+
+- `BAOCAOTHUYDIEN_DEFAULT_START`: Change the default `--start` value without passing the flag.
+- `BAOCAOTHUYDIEN_DEFAULT_END`: Set a fixed `--end` timestamp (leave unset for daily rolling end).
 
 ### Telegram alerts
 
