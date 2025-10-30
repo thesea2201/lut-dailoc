@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   app:
-    container_name: hydro-report
+    container_name: hydro-report-app
     build:
       context: .
     image: hydro-report:latest
