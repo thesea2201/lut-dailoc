@@ -11,6 +11,7 @@ services:
     volumes:
       - ./.cache:/app/.cache
       - ./public:/app/public
+      - ./.env:/app/.env:ro
       - /etc/letsencrypt/live/thuydien.thebien.net/fullchain.pem:/etc/nginx/certs/fullchain.pem:ro
       - /etc/letsencrypt/live/thuydien.thebien.net/privkey.pem:/etc/nginx/certs/privkey.pem:ro
     ports:

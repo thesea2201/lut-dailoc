@@ -54,13 +54,13 @@ def maybe_notify(readings: Sequence[Reading], config: Optional[TelegramConfig] =
 
     lines = [
         "⚠️ <b>Cảnh báo lưu lượng</b>",
-        f"Ngưỡng: {cfg.threshold:g}",
+        f"Ngưỡng: {cfg.threshold:g} m3/s",
         "",
     ]
     for label, value, timestamp in exceeded:
         if timestamp:
-            lines.append(f"• {label}: {value:g} lúc {timestamp}")
+            lines.append(f"• {label}: {value:g} m3/s lúc {timestamp}")
         else:
-            lines.append(f"• {label}: {value:g}")
+            lines.append(f"• {label}: {value:g} m3/s")
 
     send_message("\n".join(lines), cfg)

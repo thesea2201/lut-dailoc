@@ -1,0 +1,20 @@
+version: "3.9"
+
+services:
+  app:
+    container_name: hydro-report-dev
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: hydro-report-dev:latest
+    env_file:
+      - .env
+    volumes:
+      - ./.cache:/app/.cache
+      - ./public:/app/public
+      - ./.env:/app/.env:ro
+      - ./docker/certs:/etc/nginx/certs
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: unless-stopped

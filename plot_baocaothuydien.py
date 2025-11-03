@@ -38,9 +38,11 @@ load_dotenv()
 DEFAULT_START = os.getenv("BAOCAOTHUYDIEN_DEFAULT_START", "2025-10-26T00:00:00.000Z")
 DEFAULT_END = os.getenv("BAOCAOTHUYDIEN_DEFAULT_END") or default_today_end_iso()
 DEFAULT_PLANT_IDS = "1,2,3,4"
+MARKED_VALUE_BY_DATE = os.getenv("MARKED_VALUE_BY_DATE", "")
 CACHE_DIR = Path(".cache")
 CACHE_TTL = timedelta(hours=1)
 CACHE_VERSION = "3"
+MARKED_CACHE_PATH = CACHE_DIR / "marked_dates.json"
 
 
 def ensure_cache_dir() -> None:
@@ -199,6 +201,78 @@ def fetch_data(url: str) -> List[Dict[str, float]]:
         return json.load(response)
 
 
+def parse_marked_dates(env_value: str) -> List[str]:
+    """Parse comma-separated date list from MARKED_VALUE_BY_DATE."""
+    if not env_value:
+        return []
+    return [d.strip() for d in env_value.split(",") if d.strip()]
+
+
+def load_marked_cache() -> Dict[str, Tuple[float, float]]:
+    """Load cached marked date maxima from disk."""
+    if not MARKED_CACHE_PATH.exists():
+        return {}
+    try:
+        with MARKED_CACHE_PATH.open("r", encoding="utf-8") as f:
+            return json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
+def save_marked_cache(cache: Dict[str, Tuple[float, float]]) -> None:
+    """Save marked date maxima to disk."""
+    ensure_cache_dir()
+    with MARKED_CACHE_PATH.open("w", encoding="utf-8") as f:
+        json.dump(cache, f, ensure_ascii=False, indent=2)
+
+
+def fetch_marked_date_maxima(
+    dates: List[str],
+    plant_ids: str,
+) -> Dict[str, Tuple[float, float]]:
+    """Fetch and cache daily max for marked dates. Returns {date: (max_vu, max_thu)}."""
+    cache = load_marked_cache()
+    updated = False
+
+    for date_str in dates:
+        if date_str in cache:
+            continue
+
+        start_iso = f"{date_str}T00:00:00.000Z"
+        end_iso = f"{date_str}T23:59:59.999Z"
+        url = build_request_url(start_iso, end_iso, plant_ids)
+        print(f"Fetching marked date {date_str} from API...")
+
+        try:
+            records = fetch_data(url)
+        except Exception as e:
+            print(f"Failed to fetch {date_str}: {e}")
+            continue
+
+        if not records:
+            cache[date_str] = (0.0, 0.0)
+            updated = True
+            continue
+
+        max_vu = 0.0
+        max_thu = 0.0
+        for record in records:
+            qvu = safe_float(record.get("qvevugia"), 0.0)
+            qthu = safe_float(record.get("qvethubon"), 0.0)
+            if qvu > max_vu:
+                max_vu = qvu
+            if qthu > max_thu:
+                max_thu = qthu
+
+        cache[date_str] = (max_vu, max_thu)
+        updated = True
+
+    if updated:
+        save_marked_cache(cache)
+
+    return cache
+
+
 def extract_series(records: Iterable[Dict[str, float]]):
     """Return sorted timeline and the two discharge series."""
     latest_by_time: Dict[str, Tuple[float, float]] = {}
@@ -263,6 +337,7 @@ def plot_series(
     hourly_output_path: Path,
     overlay_output_path: Path,
     show_plot: bool,
+    marked_maxima: Optional[Dict[str, Tuple[float, float]]] = None,
 ) -> None:
     """Produce separate hourly and overlay charts."""
     hourly_output_path = hourly_output_path.resolve()
@@ -273,6 +348,16 @@ def plot_series(
     fig_hourly, ax_hourly = plt.subplots(figsize=(12, 6))
     ax_hourly.plot(timeline, qve_vugia, color="tab:blue", label="Q về Vu Gia")
     ax_hourly.plot(timeline, qve_thubon, color="tab:green", label="Q về Thu Bồn")
+
+    if marked_maxima:
+        colors = ["tab:orange", "tab:red", "tab:purple", "tab:brown", "tab:pink"]
+        for idx, (date_str, (max_vu, max_thu)) in enumerate(sorted(marked_maxima.items())):
+            color = colors[idx % len(colors)]
+            if max_vu > 0:
+                ax_hourly.axhline(max_vu, color=color, linestyle="--", linewidth=1, alpha=0.7, label=f"{date_str} VG max={max_vu:.0f}")
+            if max_thu > 0:
+                ax_hourly.axhline(max_thu, color=color, linestyle=":", linewidth=1, alpha=0.7, label=f"{date_str} TB max={max_thu:.0f}")
+
     ax_hourly.set_title("Diễn biến theo giờ")
     ax_hourly.set_xlabel("Thời gian xả")
     ax_hourly.set_ylabel("Lưu lượng")
@@ -323,6 +408,8 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--start", default=DEFAULT_START, help="ngaybatdau query param")
     parser.add_argument("--end", default=DEFAULT_END, help="ngayketthuc query param")
+    print("start", DEFAULT_START)
+    print("end", DEFAULT_END)
     parser.add_argument(
         "--plant-ids",
         default=DEFAULT_PLANT_IDS,
@@ -358,6 +445,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
+    print("-" * 80)
     args = parse_args()
     global CACHE_DIR, CACHE_TTL
     CACHE_DIR = Path(args.cache_dir).expanduser().resolve()
@@ -403,6 +491,10 @@ def main() -> None:
 
     timeline, qve_vugia, qve_thubon = extract_series(records)
     vu_overlay, thu_overlay = prepare_overlay_series(timeline, qve_vugia, qve_thubon)
+
+    marked_dates = parse_marked_dates(MARKED_VALUE_BY_DATE)
+    marked_maxima = fetch_marked_date_maxima(marked_dates, args.plant_ids) if marked_dates else {}
+
     hourly_path = Path(args.output)
     overlay_path = hourly_path.with_name(hourly_path.stem + "_overlay" + hourly_path.suffix)
     if cached_hourly or cached_overlay:
@@ -421,11 +513,12 @@ def main() -> None:
             hourly_path,
             overlay_path,
             args.show,
+            marked_maxima,
         )
 
     readings = []
     if timeline:
-        latest_timestamp = timeline[-1].astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+        latest_timestamp = timeline[-1].astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M")
         readings.append(("Q về Vu Gia", qve_vugia[-1], latest_timestamp))
         readings.append(("Q về Thu Bồn", qve_thubon[-1], latest_timestamp))
     maybe_notify(readings)

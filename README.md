@@ -84,7 +84,7 @@ Environment overrides:
 
 ### Telegram alerts
 
-If you set the following environment variables, the script will send a Telegram notification whenever the latest `qvevugia` or `qvethubon` reading exceeds a threshold (default `6000`):
+If you set the following environment variables, the script will send a Telegram notification whenever the latest `qvevugia` or `qvethubon` reading exceeds a threshold (default `4000`):
 
 - `TELEGRAM_BOT_TOKEN`: Bot token obtained from BotFather.
 - `TELEGRAM_CHAT_ID`: Chat or group ID to receive the alert.
@@ -93,6 +93,18 @@ If you set the following environment variables, the script will send a Telegram 
 Leave these variables unset to disable alerts.
 
 ## Deploying on a VPS
+
+### Quick start for new developers
+
+Run the bundled bootstrap script once to copy `.env.example` (if needed), build the image, and launch the stack. The script also ensures certificates persist in a local `certs/` directory that Docker mounts into `/etc/nginx/certs`:
+
+```bash
+./scripts/bootstrap.sh
+```
+
+After the container starts, update `.env` with your secrets and rerun `docker compose up -d` for changes. The entrypoint automatically generates a self-signed certificate when `certs/fullchain.pem` or `certs/privkey.pem` is missing, so onboarding requires no manual TLS steps.
+
+> Production deployments should continue using `docker compose up -d` with the base `docker-compose.yml`. The helper script invokes `docker compose -f docker-compose.yml -f docker-compose.dev.yml up` so the local `certs/` directory is only mounted in development.
 
 1. **Clone and prepare the project**
 

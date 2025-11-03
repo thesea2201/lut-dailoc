@@ -3,4 +3,5 @@
 .env
 .env.*
 !.env.example
+certs/
 __pycache__
