@@ -201,15 +201,24 @@ def fetch_data(url: str) -> List[Dict[str, float]]:
 
 def extract_series(records: Iterable[Dict[str, float]]):
     """Return sorted timeline and the two discharge series."""
-    latest_by_time: Dict[str, Dict[str, float]] = {}
+    latest_by_time: Dict[str, Tuple[float, float]] = {}
     for record in records:
-        key = record["thoigianxa"]
-        latest_by_time[key] = record  # keep the last record per timestamp if duplicates exist
+        key = record.get("thoigianxa")
+        if not key:
+            continue
+
+        qvu = safe_float(record.get("qvevugia"), 0.0)
+        qthu = safe_float(record.get("qvethubon"), 0.0)
+
+        if qvu == 0.0 and qthu == 0.0:
+            continue
+
+        latest_by_time[key] = (qvu, qthu)  # keep the last record per timestamp if duplicates exist
 
     ordered_keys = sorted(latest_by_time.keys())
     timeline = [datetime.fromisoformat(key) for key in ordered_keys]
-    qve_vugia = [safe_float(latest_by_time[key].get("qvevugia"), 0.0) for key in ordered_keys]
-    qve_thubon = [safe_float(latest_by_time[key].get("qvethubon"), 0.0) for key in ordered_keys]
+    qve_vugia = [latest_by_time[key][0] for key in ordered_keys]
+    qve_thubon = [latest_by_time[key][1] for key in ordered_keys]
     return timeline, qve_vugia, qve_thubon
 
 

@@ -11,7 +11,7 @@ from typing import Optional, Sequence, Tuple
 class TelegramConfig:
     bot_token: str
     chat_id: str
-    threshold: float = 6000.0
+    threshold: float = 4000.0
 
     @classmethod
     def from_env(cls) -> Optional["TelegramConfig"]:
@@ -20,7 +20,7 @@ class TelegramConfig:
         threshold_raw = os.getenv("TELEGRAM_THRESHOLD")
         if not token or not chat_id:
             return None
-        threshold = float(threshold_raw) if threshold_raw else 6000.0
+        threshold = float(threshold_raw) if threshold_raw else 4000.0
         return cls(bot_token=token, chat_id=chat_id, threshold=threshold)
 
 
