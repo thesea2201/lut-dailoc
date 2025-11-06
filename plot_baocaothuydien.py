@@ -32,10 +32,17 @@ def default_today_end_iso() -> str:
     return end_of_day.strftime("%Y-%m-%dT%H:%M:%S.000Z")
 
 
+def default_yesterday_start_iso() -> str:
+    today = datetime.now(timezone.utc).date()
+    yesterday = today - timedelta(days=1)
+    start_of_day = datetime(yesterday.year, yesterday.month, yesterday.day, 0, 0, 0, tzinfo=timezone.utc)
+    return start_of_day.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+
+
 BASE_URL = "https://pctt.danang.gov.vn/DesktopModules/PCTT/api/PCTTApi/baocaothuydiens_thongke"
 load_dotenv()
 
-DEFAULT_START = os.getenv("BAOCAOTHUYDIEN_DEFAULT_START", "2025-10-26T00:00:00.000Z")
+DEFAULT_START = os.getenv("BAOCAOTHUYDIEN_DEFAULT_START") or default_yesterday_start_iso()
 DEFAULT_END = os.getenv("BAOCAOTHUYDIEN_DEFAULT_END") or default_today_end_iso()
 DEFAULT_PLANT_IDS = "1,2,3,4"
 MARKED_VALUE_BY_DATE = os.getenv("MARKED_VALUE_BY_DATE", "")
@@ -348,6 +355,33 @@ def plot_series(
     fig_hourly, ax_hourly = plt.subplots(figsize=(12, 6))
     ax_hourly.plot(timeline, qve_vugia, color="tab:blue", label="Q về Vu Gia")
     ax_hourly.plot(timeline, qve_thubon, color="tab:green", label="Q về Thu Bồn")
+
+    if timeline:
+        last_time = timeline[-1]
+        if qve_vugia:
+            last_vu = qve_vugia[-1]
+            ax_hourly.scatter(last_time, last_vu, color="tab:blue", s=50, zorder=5)
+            ax_hourly.annotate(
+                f"{last_vu:.1f}",
+                (last_time, last_vu),
+                textcoords="offset points",
+                xytext=(6, 6),
+                ha="left",
+                color="tab:blue",
+                fontsize=9,
+            )
+        if qve_thubon:
+            last_thu = qve_thubon[-1]
+            ax_hourly.scatter(last_time, last_thu, color="tab:green", s=50, zorder=5)
+            ax_hourly.annotate(
+                f"{last_thu:.1f}",
+                (last_time, last_thu),
+                textcoords="offset points",
+                xytext=(6, -12),
+                ha="left",
+                color="tab:green",
+                fontsize=9,
+            )
 
     if marked_maxima:
         colors = ["tab:orange", "tab:red", "tab:purple", "tab:brown", "tab:pink"]
