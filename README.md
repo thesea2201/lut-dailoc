@@ -183,3 +183,25 @@ The `public/contact-notice.html` file contains a static message with the contact
 
 When the flood season starts again, switch GitHub Pages back to `main` (or merge the branch) and regenerate the latest reports with `./run_report.sh`.
 
+
+## Publish on GitHub Pages (docs folder)
+
+GitHub Pages can only deploy from the repository root, `/docs`, or a dedicated `gh-pages` branch. This repository keeps the generated dashboards in `public/` for local hosting, so a copy of the contact notice is provided in `docs/index.html` for GitHub Pages.
+
+1. Make sure the notice is up to date:
+
+   ```bash
+   cp public/contact-notice.html docs/index.html
+   ```
+
+   Copy any additional assets (images, CSS) you want exposed on Pages into `docs/` as well.
+
+2. Push the changes and enable GitHub Pages from the `docs/` folder under **Settings → Pages**.
+
+3. When you want the live dashboard again, either:
+
+   - Copy the latest generated artifacts into `docs/` (e.g. `cp public/*.png docs/` and `cp public/index.html docs/index.html`), or
+   - Switch Pages back to the repository root and place a minimal `index.html` there.
+
+This keeps the runtime scripts and cron outputs focused on `public/` while allowing GitHub Pages to serve a separate static snapshot.
+
