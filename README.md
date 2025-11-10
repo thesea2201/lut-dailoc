@@ -165,3 +165,21 @@ After the container starts, update `.env` with your secrets and rerun `docker co
 5. **Monitoring (optional)**
 
    Check `run_report.log` periodically or add alerting to ensure the cron job is running without errors.
+
+## Switch to the contact notice when needed
+
+The `public/contact-notice.html` file contains a static message with the contact channels to reach out if flooding returns. To publish it independently of the live dashboard, create and push a separate branch:
+
+1. Create the branch and replace the root page with the notice:
+
+   ```bash
+   git checkout -b contact-notice
+   cp public/contact-notice.html public/index.html
+   git commit -am "feat: activate contact notice"
+   git push origin contact-notice
+   ```
+
+2. In GitHub, configure **Settings → Pages** to deploy from the `contact-notice` branch and `/public` directory. The main branch can keep the full dashboard for future use.
+
+When the flood season starts again, switch GitHub Pages back to `main` (or merge the branch) and regenerate the latest reports with `./run_report.sh`.
+
