@@ -6,6 +6,10 @@ VENV_DIR="$PROJECT_DIR/.venv"
 OUTPUT_DIR="$PROJECT_DIR/public"
 HOURLY_OUTPUT="$OUTPUT_DIR/baocaothuydien_plot.png"
 OVERLAY_OUTPUT="$OUTPUT_DIR/baocaothuydien_plot_overlay.png"
+MOBILE_HOURLY_OUTPUT="$OUTPUT_DIR/baocaothuydien_plot_mobile.png"
+MOBILE_OVERLAY_OUTPUT="$OUTPUT_DIR/baocaothuydien_plot_overlay_mobile.png"
+TRAM_OUTPUT="$OUTPUT_DIR/tram_ainghia_plot.png"
+TRAM_OUTPUT_MOBILE="$OUTPUT_DIR/tram_ainghia_plot_mobile.png"
 GIT_REMOTE="${GIT_REMOTE:-origin}"
 GIT_BRANCH="${GIT_BRANCH:-main}"
 
@@ -32,6 +36,12 @@ echo "[$timestamp] Running report using $PYTHON_BIN" >> "$PROJECT_DIR/run_report
 
 "$PYTHON_BIN" "$PROJECT_DIR/plot_baocaothuydien.py" \
   --output "$HOURLY_OUTPUT" \
+  --mobile-output "$MOBILE_HOURLY_OUTPUT" \
+  --mobile-overlay-output "$MOBILE_OVERLAY_OUTPUT" \
   --cache-dir "$PROJECT_DIR/.cache" \
   --force-refresh \
   "$@"
+
+"$PYTHON_BIN" "$PROJECT_DIR/plot_tram_ainghia.py" \
+  --output "$TRAM_OUTPUT" \
+  --mobile-output "$TRAM_OUTPUT_MOBILE"

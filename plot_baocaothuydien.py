@@ -51,6 +51,31 @@ CACHE_TTL = timedelta(hours=1)
 CACHE_VERSION = "3"
 MARKED_CACHE_PATH = CACHE_DIR / "marked_dates.json"
 
+STYLE_PRESETS = {
+    "desktop": {
+        "hourly_figsize": (12, 6),
+        "overlay_figsize": (12, 10),
+        "title_size": 18,
+        "label_size": 12,
+        "tick_size": 11,
+        "legend_size": 11,
+        "annot_size": 10,
+    },
+    "mobile": {
+        "hourly_figsize": (6.2, 9.5),
+        "overlay_figsize": (6.2, 11.5),
+        "title_size": 20,
+        "label_size": 14,
+        "tick_size": 13,
+        "legend_size": 13,
+        "annot_size": 12,
+    },
+}
+
+
+def get_style(style_name: str) -> dict:
+    return STYLE_PRESETS.get(style_name, STYLE_PRESETS["desktop"])
+
 
 def ensure_cache_dir() -> None:
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
@@ -345,6 +370,7 @@ def plot_series(
     overlay_output_path: Path,
     show_plot: bool,
     marked_maxima: Optional[Dict[str, Tuple[float, float]]] = None,
+    style_name: str = "desktop",
 ) -> None:
     """Produce separate hourly and overlay charts."""
     hourly_output_path = hourly_output_path.resolve()
@@ -352,7 +378,9 @@ def plot_series(
     overlay_output_path = overlay_output_path.resolve()
     overlay_output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    fig_hourly, ax_hourly = plt.subplots(figsize=(12, 6))
+    style = get_style(style_name)
+
+    fig_hourly, ax_hourly = plt.subplots(figsize=style["hourly_figsize"])
     ax_hourly.plot(timeline, qve_vugia, color="tab:blue", label="Q về Vu Gia")
     ax_hourly.plot(timeline, qve_thubon, color="tab:green", label="Q về Thu Bồn")
 
@@ -368,7 +396,7 @@ def plot_series(
                 xytext=(6, 6),
                 ha="left",
                 color="tab:blue",
-                fontsize=9,
+                fontsize=style["annot_size"],
             )
         if qve_thubon:
             last_thu = qve_thubon[-1]
@@ -380,7 +408,7 @@ def plot_series(
                 xytext=(6, -12),
                 ha="left",
                 color="tab:green",
-                fontsize=9,
+                fontsize=style["annot_size"],
             )
 
     if marked_maxima:
@@ -392,39 +420,42 @@ def plot_series(
             if max_thu > 0:
                 ax_hourly.axhline(max_thu, color=color, linestyle=":", linewidth=1, alpha=0.7, label=f"{date_str} TB max={max_thu:.0f}")
 
-    ax_hourly.set_title("Diễn biến theo giờ")
-    ax_hourly.set_xlabel("Thời gian xả")
-    ax_hourly.set_ylabel("Lưu lượng")
-    ax_hourly.legend()
+    ax_hourly.set_title("Diễn biến theo giờ", fontsize=style["title_size"])
+    ax_hourly.set_xlabel("Thời gian xả", fontsize=style["label_size"])
+    ax_hourly.set_ylabel("Lưu lượng", fontsize=style["label_size"])
+    ax_hourly.legend(fontsize=style["legend_size"])
     ax_hourly.grid(True, which="major", linestyle="--", alpha=0.5)
+    ax_hourly.tick_params(axis="both", labelsize=style["tick_size"])
     ax_hourly.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d %H:%M"))
     fig_hourly.autofmt_xdate()
     fig_hourly.tight_layout()
     fig_hourly.savefig(hourly_output_path, dpi=150)
 
-    fig_overlay, axes_overlay = plt.subplots(2, 1, figsize=(12, 10), sharex=False)
+    fig_overlay, axes_overlay = plt.subplots(2, 1, figsize=style["overlay_figsize"], sharex=False)
 
     for label in sorted(vu_overlay.keys()):
         times, values = vu_overlay[label]
         axes_overlay[0].plot(times, values, label=label)
-    axes_overlay[0].set_title("Q về Vu Gia - So sánh từng ngày theo giờ")
-    axes_overlay[0].set_xlabel("Thời gian xả")
-    axes_overlay[0].set_ylabel("Lưu lượng")
-    axes_overlay[0].legend()
+    axes_overlay[0].set_title("Q về Vu Gia - So sánh từng ngày theo giờ", fontsize=style["title_size"])
+    axes_overlay[0].set_xlabel("Thời gian xả", fontsize=style["label_size"])
+    axes_overlay[0].set_ylabel("Lưu lượng", fontsize=style["label_size"])
+    axes_overlay[0].legend(fontsize=style["legend_size"])
     axes_overlay[0].grid(True, which="major", linestyle="--", alpha=0.5)
+    axes_overlay[0].tick_params(axis="both", labelsize=style["tick_size"])
     axes_overlay[0].xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
 
     for label in sorted(thu_overlay.keys()):
         times, values = thu_overlay[label]
         axes_overlay[1].plot(times, values, label=label)
-    axes_overlay[1].set_title("Q về Thu Bồn - So sánh từng ngày theo giờ")
-    axes_overlay[1].set_xlabel("Thời gian xả")
-    axes_overlay[1].set_ylabel("Lưu lượng")
-    axes_overlay[1].legend()
+    axes_overlay[1].set_title("Q về Thu Bồn - So sánh từng ngày theo giờ", fontsize=style["title_size"])
+    axes_overlay[1].set_xlabel("Thời gian xả", fontsize=style["label_size"])
+    axes_overlay[1].set_ylabel("Lưu lượng", fontsize=style["label_size"])
+    axes_overlay[1].legend(fontsize=style["legend_size"])
     axes_overlay[1].grid(True, which="major", linestyle="--", alpha=0.5)
+    axes_overlay[1].tick_params(axis="both", labelsize=style["tick_size"])
     axes_overlay[1].xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
 
-    fig_overlay.suptitle("Báo cáo thủy điện")
+    fig_overlay.suptitle("Báo cáo thủy điện", fontsize=style["title_size"])
     fig_overlay.tight_layout(rect=(0, 0, 1, 0.95))
     fig_overlay.savefig(overlay_output_path, dpi=150)
 
@@ -453,6 +484,14 @@ def parse_args() -> argparse.Namespace:
         "--output",
         default="baocaothuydien_plot.png",
         help="Path to save the generated plot",
+    )
+    parser.add_argument(
+        "--mobile-output",
+        help="Path to save the mobile-friendly hourly plot",
+    )
+    parser.add_argument(
+        "--mobile-overlay-output",
+        help="Path to save the mobile-friendly overlay plot",
     )
     parser.add_argument(
         "--show",
@@ -531,12 +570,23 @@ def main() -> None:
 
     hourly_path = Path(args.output)
     overlay_path = hourly_path.with_name(hourly_path.stem + "_overlay" + hourly_path.suffix)
-    if cached_hourly or cached_overlay:
-        copy_cached_plot(cached_hourly, hourly_path)
-        copy_cached_plot(cached_overlay, overlay_path)
-        if args.show:
-            show_cached_plot(hourly_path)
-            show_cached_plot(overlay_path)
+    mobile_hourly_path = Path(args.mobile_output).resolve() if args.mobile_output else None
+    if args.mobile_overlay_output:
+        mobile_overlay_path = Path(args.mobile_overlay_output).resolve()
+    elif mobile_hourly_path:
+        mobile_overlay_path = mobile_hourly_path.with_name(
+            mobile_hourly_path.stem + "_overlay" + mobile_hourly_path.suffix
+        )
+    else:
+        mobile_overlay_path = None
+
+    if cache_info is not None:
+        if cached_hourly and cached_overlay:
+            copy_cached_plot(cached_hourly, hourly_path)
+            copy_cached_plot(cached_overlay, overlay_path)
+            if args.show:
+                show_cached_plot(hourly_path)
+                show_cached_plot(overlay_path)
     else:
         plot_series(
             timeline,
@@ -548,6 +598,21 @@ def main() -> None:
             overlay_path,
             args.show,
             marked_maxima,
+            "desktop",
+        )
+
+    if mobile_hourly_path and mobile_overlay_path:
+        plot_series(
+            timeline,
+            qve_vugia,
+            qve_thubon,
+            vu_overlay,
+            thu_overlay,
+            mobile_hourly_path,
+            mobile_overlay_path,
+            False,
+            marked_maxima,
+            "mobile",
         )
 
     readings = []

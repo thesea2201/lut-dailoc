@@ -2,73 +2,156 @@
 <html lang="vi">
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Báo cáo thủy điện</title>
     <style>
-      body {
-        font-family: system-ui, sans-serif;
-        margin: 2rem;
-        background-color: #f7f9fc;
+      :root {
+        color-scheme: light dark;
+        font-size: 16px;
       }
-      h1 {
-        margin-bottom: 1rem;
+      body {
+        font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+        margin: 0;
+        padding: clamp(1rem, 4vw, 2.5rem);
+        background-color: #f7f9fc;
+        color: #0f172a;
+        line-height: 1.6;
+      }
+      main {
+        max-width: 960px;
+        margin: 0 auto;
+      }
+      h1,
+      h2 {
+        margin: 0 0 1rem;
+        line-height: 1.3;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+      .summary {
+        background: #fff;
+        padding: clamp(1rem, 2vw, 1.5rem);
+        border-radius: 0.75rem;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+        margin-bottom: clamp(1rem, 3vw, 2rem);
       }
       section {
-        margin-bottom: 2rem;
+        margin-bottom: clamp(1rem, 3vw, 2rem);
         background: #fff;
-        padding: 1.5rem;
+        padding: clamp(1rem, 2vw, 1.5rem);
         border-radius: 0.75rem;
-        box-shadow: 0 8px 16px rgba(15, 23, 42, 0.08);
+        box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
       }
       img {
-        max-width: 100%;
+        width: 100%;
         height: auto;
         display: block;
-        margin: 1rem auto 0;
-        border: 1px solid #cbd5f5;
+        margin-top: 1rem;
+        border: 1px solid #d5deff;
         border-radius: 0.5rem;
+        background: #f8fafc;
+      }
+      a {
+        color: #0d6efd;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
       }
       time {
         font-weight: 600;
       }
+      @media (max-width: 640px) {
+        body {
+          padding: 1rem;
+        }
+        h1 {
+          font-size: 1.4rem;
+        }
+        h2 {
+          font-size: 1.1rem;
+        }
+        section,
+        .summary {
+          box-shadow: 0 6px 14px rgba(15, 23, 42, 0.06);
+        }
+        section {
+          padding: 1rem;
+        }
+        section img {
+          width: 100%;
+          margin: 1rem 0 0;
+        }
+        .full-bleed img {
+          width: calc(100% + 2rem);
+          margin: 1rem -1rem 0;
+        }
+      }
     </style>
   </head>
   <body>
-    <h1>Báo cáo thủy điện | Xả lũ trên lưu vực sông Vu Gia - Thu Bồn</h1>
-    <p>
-      Hai biểu đồ dưới đây được cập nhật tự động mỗi 30 phút.<br />
-      Lần cập nhật mới nhất:
-      <time id="last-updated">đang tải...</time>
-      
-    </p>
-    <p>
-      💬 <a href="https://t.me/lut_dailoc" target="_blank" rel="noopener noreferrer">Tham gia nhóm Telegram</a> để nhận thông báo khi mức xả trên ngưỡng 3000 m³/s
-    </p>
+    <main>
+      <header class="summary">
+        <h1>Báo cáo thủy điện | Lưu vực sông Vu Gia - Thu Bồn</h1>
+        <p>
+          Ba biểu đồ dưới đây được cập nhật tự động mỗi 30 phút.<br />
+          Lần cập nhật mới nhất: <time id="last-updated">đang tải...</time>
+        </p>
+        <p>
+          💬
+          <a href="https://t.me/lut_dailoc" target="_blank" rel="noopener noreferrer"
+            >Tham gia nhóm Telegram</a
+          >
+          để nhận thông báo khi lưu lượng vượt ngưỡng cảnh báo.
+        </p>
+      </header>
 
-    <section>
-      <h2>Diễn biến lưu lượng theo giờ</h2>
-      <img src="baocaothuydien_plot.png" alt="Biểu đồ lưu lượng theo giờ" />
-    </section>
+      <section class="full-bleed">
+        <h2>Diễn biến lưu lượng theo giờ</h2>
+        <picture>
+          <source media="(max-width: 768px)" srcset="baocaothuydien_plot_mobile.png" />
+          <img src="baocaothuydien_plot.png" alt="Biểu đồ lưu lượng theo giờ" loading="lazy" />
+        </picture>
+      </section>
 
-    <section>
-      <h2>So sánh lưu lượng cùng giờ giữa các ngày</h2>
-      <img
-        src="baocaothuydien_plot_overlay.png"
-        alt="Biểu đồ so sánh lưu lượng cùng giờ giữa các ngày"
-      />
-    </section>
+      <section class="full-bleed">
+        <h2>So sánh lưu lượng cùng giờ giữa các ngày</h2>
+        <picture>
+          <source media="(max-width: 768px)" srcset="baocaothuydien_plot_overlay_mobile.png" />
+          <img
+            src="baocaothuydien_plot_overlay.png"
+            alt="Biểu đồ so sánh lưu lượng cùng giờ giữa các ngày"
+            loading="lazy"
+          />
+        </picture>
+      </section>
+
+      <section class="full-bleed">
+        <h2>Mực nước Trạm Ái Nghĩa</h2>
+        <picture>
+          <source media="(max-width: 768px)" srcset="tram_ainghia_plot_mobile.png" />
+          <img src="tram_ainghia_plot.png" alt="Biểu đồ mực nước Trạm Ái Nghĩa" loading="lazy" />
+        </picture>
+      </section>
+    </main>
 
     <script>
-      fetch('baocaothuydien_plot.png', { method: 'HEAD' })
-        .then((response) => {
+      const lastUpdatedEl = document.getElementById('last-updated');
+      const source = 'baocaothuydien_plot.png';
+
+      async function updateTimestamp() {
+        try {
+          const response = await fetch(source, { method: 'HEAD', cache: 'no-store' });
           const lastModified = response.headers.get('Last-Modified');
-          if (lastModified) {
-            const date = new Date(lastModified);
-            document.getElementById('last-updated').textContent = date.toLocaleString();
-          }
-        })
-        .catch(() => {
-          document.getElementById('last-updated').textContent = 'Không xác định';
-        });
+          if (!lastModified) throw new Error('missing header');
+          lastUpdatedEl.textContent = new Date(lastModified).toLocaleString();
+        } catch (error) {
+          lastUpdatedEl.textContent = 'Không xác định';
+        }
+      }
+
+      updateTimestamp();
     </script>
   </body>
 </html>

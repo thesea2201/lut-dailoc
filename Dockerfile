@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY plot_baocaothuydien.py run_report.sh telegram_notifier.py ./
+COPY plot_baocaothuydien.py plot_tram_ainghia.py run_report.sh telegram_notifier.py ./
 COPY public ./public
 
 RUN chmod +x run_report.sh
