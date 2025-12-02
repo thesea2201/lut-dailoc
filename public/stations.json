@@ -1,0 +1,14 @@
+[
+  {
+    "code": "553300",
+    "label": "Ái Nghĩa",
+    "image": "tram_553300_plot.png",
+    "imageMobile": "tram_553300_plot_mobile.png"
+  },
+  {
+    "code": "553100",
+    "label": "Hội Khách",
+    "image": "tram_553100_plot.png",
+    "imageMobile": "tram_553100_plot_mobile.png"
+  }
+]

@@ -127,22 +127,22 @@
         </picture>
       </section>
 
-      <section class="full-bleed">
-        <h2>Mực nước Trạm Ái Nghĩa</h2>
-        <picture>
-          <source media="(max-width: 768px)" srcset="tram_ainghia_plot_mobile.png" />
-          <img src="tram_ainghia_plot.png" alt="Biểu đồ mực nước Trạm Ái Nghĩa" loading="lazy" />
-        </picture>
+      <section class="full-bleed" id="stations">
+        <h2>Mực nước các trạm</h2>
+        <div id="station-list">
+          <p>Đang tải dữ liệu trạm...</p>
+        </div>
       </section>
     </main>
 
     <script>
       const lastUpdatedEl = document.getElementById('last-updated');
-      const source = 'baocaothuydien_plot.png';
+      const stationListEl = document.getElementById('station-list');
+      const flowSource = 'baocaothuydien_plot.png';
 
       async function updateTimestamp() {
         try {
-          const response = await fetch(source, { method: 'HEAD', cache: 'no-store' });
+          const response = await fetch(flowSource, { method: 'HEAD', cache: 'no-store' });
           const lastModified = response.headers.get('Last-Modified');
           if (!lastModified) throw new Error('missing header');
           lastUpdatedEl.textContent = new Date(lastModified).toLocaleString();
@@ -151,7 +151,39 @@
         }
       }
 
+      function renderStationSection(station) {
+        const section = document.createElement('article');
+        section.className = 'station-card';
+        section.innerHTML = `
+          <h3>${station.label}</h3>
+          <picture>
+            <source media="(max-width: 768px)" srcset="${station.imageMobile}" />
+            <img src="${station.image}" alt="Biểu đồ mực nước ${station.label}" loading="lazy" />
+          </picture>
+        `;
+        return section;
+      }
+
+      async function loadStations() {
+        try {
+          const response = await fetch('stations.json', { cache: 'no-store' });
+          if (!response.ok) throw new Error('failed to load stations');
+          const stations = await response.json();
+          if (!Array.isArray(stations) || stations.length === 0) {
+            stationListEl.innerHTML = '<p>Không tìm thấy dữ liệu trạm.</p>';
+            return;
+          }
+          stationListEl.innerHTML = '';
+          stations.forEach((station) => {
+            stationListEl.appendChild(renderStationSection(station));
+          });
+        } catch (error) {
+          stationListEl.innerHTML = '<p>Không thể tải danh sách trạm.</p>';
+        }
+      }
+
       updateTimestamp();
+      loadStations();
     </script>
   </body>
 </html>

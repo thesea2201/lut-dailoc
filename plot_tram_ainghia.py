@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-"""Fetch Tram Ái Nghĩa water levels from Google Sheets and plot a line chart."""
+"""Fetch station water levels from Google Sheets and plot a line chart."""
 
 from __future__ import annotations
 
 import argparse
 import csv
 import io
+import os
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Iterable, Tuple
@@ -22,11 +24,43 @@ DEFAULT_SHEET_URL = (
     f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv&gid={SHEET_GID}"
 )
 
-THRESHOLDS: Tuple[Tuple[str, float], ...] = (
+DEFAULT_THRESHOLDS: Tuple[Tuple[str, float], ...] = (
     ("BĐ1", 6.5),
     ("BĐ2", 8.0),
     ("BĐ3", 9.0),
 )
+
+
+@dataclass(frozen=True)
+class StationConfig:
+    code: str
+    label: str
+    thresholds: Tuple[Tuple[str, float], ...]
+
+    @property
+    def max_threshold(self) -> float:
+        return self.thresholds[-1][1]
+
+
+STATION_CONFIGS: dict[str, StationConfig] = {
+    "553300": StationConfig("553300", "Ái Nghĩa", DEFAULT_THRESHOLDS),
+    "553100": StationConfig(
+        "553100",
+        "Hội Khách",
+        (
+            ("BĐ1", 14.5),
+            ("BĐ2", 15.5),
+            ("BĐ3", 16.5),
+        ),
+    ),
+}
+
+
+def get_station_config(ma_tram: str) -> StationConfig:
+    return STATION_CONFIGS.get(
+        ma_tram,
+        StationConfig(code=ma_tram, label=ma_tram, thresholds=DEFAULT_THRESHOLDS),
+    )
 
 STYLE_PRESETS = {
     "desktop": {
@@ -107,7 +141,7 @@ def build_series(records: Iterable[dict[str, str]], ma_tram: str) -> Tuple[list[
 def notify_if_threshold_exceeded(
     timeline: list[datetime],
     values: list[float],
-    ma_tram: str,
+    station: StationConfig,
     config: TelegramConfig | None,
 ) -> None:
     """Send Telegram alert if latest value is above BĐ3 and still rising."""
@@ -115,7 +149,7 @@ def notify_if_threshold_exceeded(
     if config is None or len(values) < 2:
         return
 
-    label, level = THRESHOLDS[-1]
+    label, level = station.thresholds[-1]
     last_value, prev_value = values[-1], values[-2]
     if last_value <= level or last_value <= prev_value:
         return
@@ -125,7 +159,7 @@ def notify_if_threshold_exceeded(
     message = (
         "\n".join(
             [
-                f"⚠️ Mực nước trạm {ma_tram} đạt {last_value:.2f} m lúc {last_time}",
+                f"⚠️ Mực nước trạm {station.label} ({station.code}) đạt {last_value:.2f} m lúc {last_time}",
                 f"• Vượt {label} ({level:.2f} m)",
                 f"• Tiếp tục tăng từ {prev_value:.2f} m lúc {prev_time}",
             ]
@@ -139,10 +173,13 @@ def notify_if_threshold_exceeded(
         print(f"Không thể gửi cảnh báo Telegram: {exc}")
 
 
-def resolve_telegram_config(token: str | None, chat_id: str | None) -> TelegramConfig | None:
+def resolve_telegram_config(
+    token: str | None,
+    chat_id: str | None,
+    threshold: float,
+) -> TelegramConfig | None:
     """Build TelegramConfig from CLI args or environment."""
 
-    threshold = THRESHOLDS[-1][1]
     if token or chat_id:
         if not token or not chat_id:
             raise ValueError("Cần cung cấp cả token và chat ID khi dùng tham số CLI.")
@@ -159,7 +196,7 @@ def plot_series(
     values: list[float],
     output_path: Path,
     show: bool,
-    ma_tram: str,
+    station: StationConfig,
     style_name: str = "desktop",
 ) -> None:
     """Render a line chart and save (or optionally show) the figure."""
@@ -187,7 +224,7 @@ def plot_series(
     )
 
     colors = {"BĐ1": "tab:orange", "BĐ2": "tab:red", "BĐ3": "tab:purple"}
-    for label, level in THRESHOLDS:
+    for label, level in station.thresholds:
         ax.axhline(level, color=colors.get(label, "gray"), linestyle="--", linewidth=1.3, label=f"{label} = {level:g}")
         ax.annotate(
             f"{label} ({level:g})",
@@ -201,7 +238,10 @@ def plot_series(
             fontweight="bold",
         )
 
-    ax.set_title(f"Diễn biến mực nước trạm {ma_tram}", fontsize=style["title_size"])
+    ax.set_title(
+        f"Diễn biến mực nước trạm {station.label} ({station.code})",
+        fontsize=style["title_size"],
+    )
     ax.set_xlabel("Thời gian", fontsize=style["label_size"])
     ax.set_ylabel("Mực nước (m)", fontsize=style["label_size"])
     ax.grid(True, linestyle="--", alpha=0.4)
@@ -224,6 +264,15 @@ def plot_series(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
+
+    env_station = os.getenv("TRAM_STATION_CODE")
+    if not env_station:
+        env_candidates = os.getenv("TRAM_STATION_CODES", "553300")
+        env_station = next(
+            (code.strip() for code in env_candidates.split(",") if code.strip()),
+            "553300",
+        )
+
     parser.add_argument(
         "--sheet-url",
         default=DEFAULT_SHEET_URL,
@@ -235,8 +284,13 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--ma-tram",
-        default="553300",
-        help="Mã trạm cần lọc",
+        "--station-code",
+        dest="ma_tram",
+        default=env_station,
+        help=(
+            "Mã trạm cần lọc (mặc định đọc TRAM_STATION_CODE hoặc giá trị đầu tiên "
+            "của TRAM_STATION_CODES)."
+        ),
     )
     parser.add_argument(
         "--output",
@@ -276,18 +330,23 @@ def main() -> None:
         records = parse_csv_content(csv_text)
 
     timeline, values = build_series(records, args.ma_tram)
+    station = get_station_config(args.ma_tram)
 
-    telegram_config = resolve_telegram_config(args.telegram_token, args.telegram_chat_id)
-    notify_if_threshold_exceeded(timeline, values, args.ma_tram, telegram_config)
+    telegram_config = resolve_telegram_config(
+        args.telegram_token,
+        args.telegram_chat_id,
+        station.max_threshold,
+    )
+    notify_if_threshold_exceeded(timeline, values, station, telegram_config)
 
-    plot_series(timeline, values, Path(args.output), args.show, args.ma_tram, "desktop")
+    plot_series(timeline, values, Path(args.output), args.show, station, "desktop")
     if args.mobile_output:
         plot_series(
             timeline,
             values,
             Path(args.mobile_output),
             False,
-            args.ma_tram,
+            station,
             "mobile",
         )
 
